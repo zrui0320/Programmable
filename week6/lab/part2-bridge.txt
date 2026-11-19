@@ -1,0 +1,29 @@
+# red and blue namespaces, two veth pairs, bridge br0 (built by hand in the course container)
+
+# ip netns exec red ping -c 2 10.40.9.2
+PING 10.40.9.2 (10.40.9.2) 56(84) bytes of data.
+64 bytes from 10.40.9.2: icmp_seq=1 ttl=64 time=0.053 ms
+64 bytes from 10.40.9.2: icmp_seq=2 ttl=64 time=0.057 ms
+
+--- 10.40.9.2 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1064ms
+rtt min/avg/max/mdev = 0.053/0.055/0.057/0.002 ms
+
+# bridge fdb show br br0
+42:a4:c6:e7:47:d7 dev red-br master br0
+22:7b:f2:17:b5:18 dev red-br vlan 1 master br0 permanent
+22:7b:f2:17:b5:18 dev red-br master br0 permanent
+33:33:00:00:00:01 dev red-br self permanent
+01:00:5e:00:00:01 dev red-br self permanent
+33:33:ff:17:b5:18 dev red-br self permanent
+46:6b:e5:92:48:12 dev blue-br master br0
+3e:7e:41:b1:ae:5a dev blue-br vlan 1 master br0 permanent
+3e:7e:41:b1:ae:5a dev blue-br master br0 permanent
+33:33:00:00:00:01 dev blue-br self permanent
+01:00:5e:00:00:01 dev blue-br self permanent
+33:33:ff:b1:ae:5a dev blue-br self permanent
+33:33:00:00:00:01 dev br0 self permanent
+01:00:5e:00:00:6a dev br0 self permanent
+33:33:00:00:00:6a dev br0 self permanent
+01:00:5e:00:00:01 dev br0 self permanent
+33:33:ff:17:b5:18 dev br0 self permanent

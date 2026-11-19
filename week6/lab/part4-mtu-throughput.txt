@@ -1,0 +1,33 @@
+mininet> h1 ping -c 2 10.40.100.2
+64 bytes from 10.40.100.2: icmp_seq=1 ttl=64 time=0.110 ms
+64 bytes from 10.40.100.2: icmp_seq=2 ttl=64 time=0.080 ms
+2 packets transmitted, 2 received, 0% packet loss, time 1043ms
+
+mininet> h1 ip link show h1-eth0
+2: h1-eth0@if8: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DEFAULT group default qlen 1000
+    link/ether 00:00:00:00:00:01 brd ff:ff:ff:ff:ff:ff link-netnsid 0
+mininet> h1 ip link show vxlan100
+3: vxlan100: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/ether 92:46:2d:f4:a0:c2 brd ff:ff:ff:ff:ff:ff
+
+mininet> h1 ping -M do -c 1 -s 1422 10.40.100.2
+PING 10.40.100.2 (10.40.100.2) 1422(1450) bytes of data.
+1430 bytes from 10.40.100.2: icmp_seq=1 ttl=64 time=0.057 ms
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+
+mininet> h1 ping -M do -c 1 -s 1423 10.40.100.2
+PING 10.40.100.2 (10.40.100.2) 1423(1451) bytes of data.
+ping: local error: message too long, mtu=1450
+1 packets transmitted, 0 received, +1 errors, 100% packet loss, time 0ms
+
+mininet> h2 iperf3 -s -D
+
+mininet> h1 iperf3 -c 10.40.0.2 -t 5        # underlay
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-5.00   sec  40.9 GBytes  70.3 Gbits/sec    1             sender
+[  5]   0.00-5.00   sec  40.9 GBytes  70.3 Gbits/sec                  receiver
+
+mininet> h1 iperf3 -c 10.40.100.2 -t 5      # overlay (VNI 100)
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-5.00   sec  25.8 GBytes  44.2 Gbits/sec    0             sender
+[  5]   0.00-5.00   sec  25.8 GBytes  44.2 Gbits/sec                  receiver

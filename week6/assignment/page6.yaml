@@ -1,0 +1,51 @@
+# page6.yaml: the words on your Week 6 page. make_page6.py puts each answer under its question.
+# A few sentences each, in your own words, about YOUR overlay and YOUR evidence.
+# Leave a blank line between paragraphs. Don't put your name or your full student ID in this file.
+
+repository: https://github.com/ZIRUING/Programmable-Network-Lab
+
+answers:
+  design:
+    question: "Describe your design: hypervisors, tenants, VNIs and addresses. Which tenants overlap, and why did you place each VM where you did?"
+    answer: |
+      My data centre has four hypervisors, hv1 to hv4, on the underlay 10.40.0.0/24 (10.40.0.1 to .4), all on one underlay switch s1. There are three tenants. red is VNI 100 on 10.40.50.0/24, blue is VNI 200 on 10.40.50.0/24 as well, and green is VNI 300 on 10.40.60.0/24. Everything is inside 10.40.0.0/16, from my ID.
+
+      red and blue overlap on purpose. They use exactly the same network, so red1 and blue1 are both 10.40.50.10, and red2 and blue2 are both 10.40.50.11. Only the VNI keeps them apart. Their MACs still differ, because the VNI is in the middle: red2 is 02:00:00:64:00:0b (0x64 = 100) and blue2 is 02:00:00:c8:00:0b (0xc8 = 200).
+
+      I put red on three hypervisors (hv1, hv2, hv3) so its flood list has two entries and I could watch a broadcast reach a hypervisor that wasn't part of the conversation. blue sits on the same hv1 and hv2 as red, so hv1 and hv2 each host two tenants with the same addresses side by side: two bridges (br100, br200) and two VXLAN devices on one underlay interface. green uses hv3 (shared with red) and hv4, a hypervisor that hosts no red or blue VMs. That shows a VTEP is only in the flood lists of the VNIs it actually hosts.
+
+  isolation:
+    question: "Two of your VMs have the same IP address. Using your evidence, explain how a ping reaches the right one — and what would have to go wrong for one tenant to see another's traffic."
+    answer: |
+      red2 and blue2 are both 10.40.50.11. When red1 pinged 10.40.50.11, all 3 replies came back, and red1's neighbour table shows 10.40.50.11 at 02:00:00:64:00:0b: VNI 100 in the middle, so red2 answered. During that ping, tcpdump on blue2-eth0 captured 0 packets. When blue1 pinged the same address, its neighbour table shows 02:00:00:c8:00:0b: VNI 200, so blue2 (evidence6/isolation.txt).
+
+      The IP address is never used to pick a tenant. red1 is plugged into hv1's br100, whose only way out is vxlan100, so every frame red1 sends leaves the underlay labelled VNI 100. On hv2, the VXLAN layer hands VNI 100 packets only to vxlan100, which sits in br100, which only has red2's port. The ARP request and the ping never reach br200, so blue2 can't answer and never even sees them.
+
+      For one tenant to see another's traffic, the separation by VNI or bridge would have to break. For example, two tenants given the same VNI (check_spec() refuses that), a VM port put into the wrong tenant's bridge, both VXLAN devices in one bridge, or a router joining the two bridges. VXLAN also has no authentication: anything that can send UDP 4789 onto the underlay can inject a frame with any VNI. So the underlay itself has to be trusted and closed off from the tenants.
+
+  flood_learn:
+    question: "Using your evidence, explain what was flooded, to which hypervisors, and what each VTEP learned. With 50 hypervisors in one VNI, how many copies would one broadcast need — and how would EVPN change that?"
+    answer: |
+      Before any traffic, hv1's vxlan100 table held only its flood list, the two entries my tenant_commands() created: 00:00:00:00:00:00 dst 10.40.0.2 and dst 10.40.0.3. red1 pinged red2, so it first broadcast an ARP "who-has 10.40.50.11 tell 10.40.50.10". hv1 had no learned entry, so it copied the frame to every hypervisor in the list, hv2 and hv3: head-end replication. hv3 captured it on its underlay (10.40.0.1 > 10.40.0.3, VXLAN vni 100, ARP Request who-has 10.40.50.11), even though the ping was only between hv1 and hv2. hv4 got nothing, because it hosts no red VMs and isn't in VNI 100's flood list.
+
+      Afterwards, hv1 had learned red2's MAC 02:00:00:64:00:0b at dst 10.40.0.2, from the ARP reply. hv3 had learned red1's MAC 02:00:00:64:00:0a at dst 10.40.0.1, from the flooded request. hv3 captured just that one packet: once the MACs were learned, the ARP reply and the pings went unicast, hv1 to hv2 only.
+
+      With 50 hypervisors in one VNI, every broadcast, and every frame to an unknown MAC, needs 49 copies sent by the source VTEP. EVPN replaces flood-and-learn with a BGP control plane. Each VTEP advertises the MAC and IP addresses of its own VMs (type-2 routes), so every other VTEP knows where a MAC is before any traffic, with no unknown-unicast flooding. With ARP suppression the local VTEP answers ARP itself, so the ARP broadcast often isn't sent at all. The flood list is also built automatically from type-3 routes instead of being typed in. Real broadcasts still need copies, but there are far fewer of them.
+
+  mtu:
+    question: "Compare your two MTU fixes using your measurements. Which would you choose for a data centre, what does each cost, and who has to change what?"
+    answer: |
+      The black hole first. With tenants at 1500 on a 1500-byte underlay, check_mtu() refused all three tenants (1500 + 50 = 1550, 50 bytes too many). Built anyway with --force, small pings worked but a 1472-byte ping (1500 bytes) was lost, and iperf3 moved 0 bytes in 5 seconds. The largest DF ping that got through was 1422 bytes, which is 1450 with headers: 1450 + 50 = 1500. 1423 failed (evidence6/blackhole.txt).
+
+      Fix A (tenant MTU 1450, underlay 1500): 1422 works and 1423 is refused at the sender with "message too long, mtu=1450", an honest error instead of a black hole. iperf3 ran at 6.43 Gbit/s. Fix B (tenants 1500, underlay 9000): full 1472-byte pings work, 1473 is refused at mtu=1500, and iperf3 ran at 6.86 Gbit/s, about 7% faster with fewer retransmissions (166 against 569), because every packet carries 50 more bytes of payload (evidence6/fixes.txt).
+
+      I'd choose B, and overlay.yaml uses it. The cost falls on the operator, once: every underlay switch port, NIC and hypervisor link has to support jumbo frames and be configured for them, and a single device left at 1500 brings the black hole back. Tenants change nothing and see a normal 1500 network, and they could even be offered more. Fix A needs no new hardware, but the cost lands on every tenant forever. Every VM has to be given MTU 1450 (by DHCP or cloud-init), every packet carries less data, and software that assumes 1500 can misbehave. A is the fix when you don't own the underlay, for example VXLAN across the internet.
+
+  p4:
+    question: "If your hypervisors' VTEPs were P4 switches running the lecture's vtep.p4, what would have to fill the vtep_encap table, and how? What would replace flood-and-learn?"
+    answer: |
+      A P4 switch doesn't learn by itself. Its tables are empty until a control plane writes entries, so vtep_encap would have to be filled by a controller over P4Runtime. Each entry maps a tenant's destination (its VNI and the destination VM's MAC) to an action that adds the VXLAN, UDP and outer IP headers with the right remote VTEP address, for example VNI 100 + 02:00:00:64:00:0b → encapsulate to 10.40.0.2.
+
+      The controller doesn't need to learn anything, because the data centre already knows where every VM is. My overlay.yaml and plan() hold every VM's tenant, VNI, MAC and hypervisor. A controller could turn that inventory into vtep_encap entries for every hypervisor, the same way tenant_commands() turns it into Linux commands, and update them when a VM is created or moved.
+
+      That replaces flood-and-learn with control-plane learning, the same idea as EVPN: entries are installed before traffic flows, so there are no unknown MACs to flood. ARP could be answered by the controller or by a proxy-ARP table on the switch, since it knows every IP-to-MAC binding. Real broadcasts would use a multicast group in the switch's replication engine, listing the tenant's other hypervisors, which is the P4 version of my 00:00:00:00:00:00 flood list.

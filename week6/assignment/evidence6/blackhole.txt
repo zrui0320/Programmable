@@ -1,0 +1,73 @@
+PING 10.40.50.11 (10.40.50.11) 56(84) bytes of data.
+64 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.141 ms
+64 bytes from 10.40.50.11: icmp_seq=2 ttl=64 time=0.065 ms
+
+--- 10.40.50.11 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1048ms
+rtt min/avg/max/mdev = 0.065/0.103/0.141/0.038 ms
+PING 10.40.50.11 (10.40.50.11) 1472(1500) bytes of data.
+
+--- 10.40.50.11 ping statistics ---
+2 packets transmitted, 0 received, 100% packet loss, time 1022ms
+
+Connecting to host 10.40.50.11, port 5201
+[  5] local 10.40.50.10 port 52962 connected to 10.40.50.11 port 5201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  0.00 Bytes  0.00 bits/sec    2   1.41 KBytes       
+[  5]   1.00-2.00   sec  0.00 Bytes  0.00 bits/sec    1   1.41 KBytes       
+[  5]   2.00-3.00   sec  0.00 Bytes  0.00 bits/sec    0   1.41 KBytes       
+[  5]   3.00-4.00   sec  0.00 Bytes  0.00 bits/sec    1   1.41 KBytes       
+[  5]   4.00-5.00   sec  0.00 Bytes  0.00 bits/sec    0   1.41 KBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-5.00   sec  0.00 Bytes  0.00 bits/sec    4             sender
+[  5]   0.00-5.00   sec  0.00 Bytes  0.00 bits/sec                  receiver
+
+iperf Done.
+== finding the limit: ping -M do -s <size>
+PING 10.40.50.11 (10.40.50.11) 1400(1428) bytes of data.
+1408 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.061 ms
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.061/0.061/0.061/0.000 ms
+PING 10.40.50.11 (10.40.50.11) 1450(1478) bytes of data.
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 0 received, 100% packet loss, time 0ms
+
+PING 10.40.50.11 (10.40.50.11) 1425(1453) bytes of data.
+From 10.40.50.11 icmp_seq=1 Frag needed and DF set (mtu = 1450)
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 0 received, +1 errors, 100% packet loss, time 0ms
+
+PING 10.40.50.11 (10.40.50.11) 1412(1440) bytes of data.
+1420 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.042 ms
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.042/0.042/0.042/0.000 ms
+PING 10.40.50.11 (10.40.50.11) 1418(1446) bytes of data.
+1426 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.030 ms
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.030/0.030/0.030/0.000 ms
+PING 10.40.50.11 (10.40.50.11) 1421(1449) bytes of data.
+1429 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.030 ms
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.030/0.030/0.030/0.000 ms
+PING 10.40.50.11 (10.40.50.11) 1422(1450) bytes of data.
+1430 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.022 ms
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.022/0.022/0.022/0.000 ms
+PING 10.40.50.11 (10.40.50.11) 1423(1451) bytes of data.
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 0 received, +1 errors, 100% packet loss, time 0ms
+

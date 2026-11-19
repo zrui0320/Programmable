@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overlay 3540: my data centre, from data</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 52rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.55; color: #1f2937; }
+  h1 { font-size: 1.6rem; margin-bottom: .2rem; } h2 { margin-top: 2.2rem; border-bottom: 1px solid #e5e7eb; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin-bottom: 1rem; } th, td { border-bottom: 1px solid #e5e7eb; padding: .35rem .5rem; text-align: left; }
+  pre { background: #111827; color: #f3f4f6; padding: .8rem; border-radius: .4rem; overflow-x: auto; font-size: .82rem; }
+  pre.mermaid { background: none; color: inherit; } pre.missing { background: #fef2f2; color: #991b1b; }
+  .meta, .file { color: #6b7280; font-size: .85rem; } code { font-size: .88em; }
+</style>
+</head>
+<body>
+<p class="meta"><a href="../">← Week 2: my network, built from data</a> · <a href="../week3/">Week 3: routed, from data</a></p>
+<h1>My data centre overlay, from data</h1>
+<p class="meta">Student ID ending 3540 · generated from <code>overlay.yaml</code> by <code>make_page6.py</code> on 2026-11-20</p>
+<p id="summary">4 hypervisors and 3 tenants (7 VMs) on <code>10.40.0.0/16</code>, joined by VXLAN.
+Every tenant's MTU was checked against the underlay before anything was built.</p>
+<p>Repository: <a id="repository" href="https://github.com/ZIRUING/Programmable-Network-Lab">https://github.com/ZIRUING/Programmable-Network-Lab</a></p>
+
+<h2>The design</h2>
+<h3>Hypervisors and the underlay</h3>
+<section id="hypervisors"><p>Underlay <code>10.40.0.0/24</code>, MTU 9000.</p><table><tr><th>Hypervisor</th><th>Underlay address</th><th>VMs</th></tr><tr><td>hv1</td><td><code>10.40.0.1</code></td><td>red1 (red), blue1 (blue)</td></tr><tr><td>hv2</td><td><code>10.40.0.2</code></td><td>red2 (red), blue2 (blue)</td></tr><tr><td>hv3</td><td><code>10.40.0.3</code></td><td>red3 (red), green1 (green)</td></tr><tr><td>hv4</td><td><code>10.40.0.4</code></td><td>green2 (green)</td></tr></table></section>
+<section id="tenants"><h3>red: VNI 100, <code>10.40.50.0/24</code>, MTU 1500</h3><table><tr><th>VM</th><th>On</th><th>Address</th><th>MAC</th></tr><tr><td>red1</td><td>hv1</td><td><code>10.40.50.10</code></td><td><code>02:00:00:64:00:0a</code></td></tr><tr><td>red2</td><td>hv2</td><td><code>10.40.50.11</code></td><td><code>02:00:00:64:00:0b</code></td></tr><tr><td>red3</td><td>hv3</td><td><code>10.40.50.12</code></td><td><code>02:00:00:64:00:0c</code></td></tr></table>
+<h3>blue: VNI 200, <code>10.40.50.0/24</code>, MTU 1500</h3><table><tr><th>VM</th><th>On</th><th>Address</th><th>MAC</th></tr><tr><td>blue1</td><td>hv1</td><td><code>10.40.50.10</code></td><td><code>02:00:00:c8:00:0a</code></td></tr><tr><td>blue2</td><td>hv2</td><td><code>10.40.50.11</code></td><td><code>02:00:00:c8:00:0b</code></td></tr></table>
+<h3>green: VNI 300, <code>10.40.60.0/24</code>, MTU 1500</h3><table><tr><th>VM</th><th>On</th><th>Address</th><th>MAC</th></tr><tr><td>green1</td><td>hv3</td><td><code>10.40.60.10</code></td><td><code>02:00:01:2c:00:0a</code></td></tr><tr><td>green2</td><td>hv4</td><td><code>10.40.60.11</code></td><td><code>02:00:01:2c:00:0b</code></td></tr></table></section>
+<h3>Diagram</h3>
+<pre class="mermaid" id="diagram">graph TB
+  s1[[underlay switch s1]]
+  hv1[&quot;hv1&lt;br&gt;10.40.0.1&quot;] --- s1
+  hv2[&quot;hv2&lt;br&gt;10.40.0.2&quot;] --- s1
+  hv3[&quot;hv3&lt;br&gt;10.40.0.3&quot;] --- s1
+  hv4[&quot;hv4&lt;br&gt;10.40.0.4&quot;] --- s1
+  red1(&quot;red1&lt;br&gt;10.40.50.10&lt;br&gt;red · VNI 100&quot;) --- hv1
+  red2(&quot;red2&lt;br&gt;10.40.50.11&lt;br&gt;red · VNI 100&quot;) --- hv2
+  red3(&quot;red3&lt;br&gt;10.40.50.12&lt;br&gt;red · VNI 100&quot;) --- hv3
+  blue1(&quot;blue1&lt;br&gt;10.40.50.10&lt;br&gt;blue · VNI 200&quot;) --- hv1
+  blue2(&quot;blue2&lt;br&gt;10.40.50.11&lt;br&gt;blue · VNI 200&quot;) --- hv2
+  green1(&quot;green1&lt;br&gt;10.40.60.10&lt;br&gt;green · VNI 300&quot;) --- hv3
+  green2(&quot;green2&lt;br&gt;10.40.60.11&lt;br&gt;green · VNI 300&quot;) --- hv4</pre>
+
+<h2>VTEP commands, as built</h2>
+<p>What <code>tenant_commands()</code> ran on each hypervisor.</p>
+<section id="commands"><h3>hv1</h3>
+<pre id="commands-hv1">ip link add br100 type bridge
+ip link set br100 up
+ip link add vxlan100 type vxlan id 100 local 10.40.0.1 dstport 4789 dev hv1-eth0
+ip link set vxlan100 master br100
+ip link set vxlan100 up
+ip link set hv1-eth1 master br100
+ip link set hv1-eth1 up
+bridge fdb append 00:00:00:00:00:00 dev vxlan100 dst 10.40.0.2
+bridge fdb append 00:00:00:00:00:00 dev vxlan100 dst 10.40.0.3
+ip link add br200 type bridge
+ip link set br200 up
+ip link add vxlan200 type vxlan id 200 local 10.40.0.1 dstport 4789 dev hv1-eth0
+ip link set vxlan200 master br200
+ip link set vxlan200 up
+ip link set hv1-eth2 master br200
+ip link set hv1-eth2 up
+bridge fdb append 00:00:00:00:00:00 dev vxlan200 dst 10.40.0.2</pre>
+<h3>hv2</h3>
+<pre id="commands-hv2">ip link add br100 type bridge
+ip link set br100 up
+ip link add vxlan100 type vxlan id 100 local 10.40.0.2 dstport 4789 dev hv2-eth0
+ip link set vxlan100 master br100
+ip link set vxlan100 up
+ip link set hv2-eth1 master br100
+ip link set hv2-eth1 up
+bridge fdb append 00:00:00:00:00:00 dev vxlan100 dst 10.40.0.1
+bridge fdb append 00:00:00:00:00:00 dev vxlan100 dst 10.40.0.3
+ip link add br200 type bridge
+ip link set br200 up
+ip link add vxlan200 type vxlan id 200 local 10.40.0.2 dstport 4789 dev hv2-eth0
+ip link set vxlan200 master br200
+ip link set vxlan200 up
+ip link set hv2-eth2 master br200
+ip link set hv2-eth2 up
+bridge fdb append 00:00:00:00:00:00 dev vxlan200 dst 10.40.0.1</pre>
+<h3>hv3</h3>
+<pre id="commands-hv3">ip link add br100 type bridge
+ip link set br100 up
+ip link add vxlan100 type vxlan id 100 local 10.40.0.3 dstport 4789 dev hv3-eth0
+ip link set vxlan100 master br100
+ip link set vxlan100 up
+ip link set hv3-eth1 master br100
+ip link set hv3-eth1 up
+bridge fdb append 00:00:00:00:00:00 dev vxlan100 dst 10.40.0.1
+bridge fdb append 00:00:00:00:00:00 dev vxlan100 dst 10.40.0.2
+ip link add br300 type bridge
+ip link set br300 up
+ip link add vxlan300 type vxlan id 300 local 10.40.0.3 dstport 4789 dev hv3-eth0
+ip link set vxlan300 master br300
+ip link set vxlan300 up
+ip link set hv3-eth2 master br300
+ip link set hv3-eth2 up
+bridge fdb append 00:00:00:00:00:00 dev vxlan300 dst 10.40.0.4</pre>
+<h3>hv4</h3>
+<pre id="commands-hv4">ip link add br300 type bridge
+ip link set br300 up
+ip link add vxlan300 type vxlan id 300 local 10.40.0.4 dstport 4789 dev hv4-eth0
+ip link set vxlan300 master br300
+ip link set vxlan300 up
+ip link set hv4-eth1 master br300
+ip link set hv4-eth1 up
+bridge fdb append 00:00:00:00:00:00 dev vxlan300 dst 10.40.0.3</pre></section>
+
+<h2>Evidence from the running overlay</h2>
+<section id="evidence"><h3>check_mtu() refusing the black-hole design</h3>
+<p class="file">evidence6/check.txt</p>
+<pre id="evidence-check">PROBLEM: tenant red (VNI 100): MTU 1500 + 50 VXLAN = 1550 bytes on the underlay, 50 more than its MTU 1500: lower the tenant MTU to 1450 or raise the underlay MTU to 1550
+PROBLEM: tenant blue (VNI 200): MTU 1500 + 50 VXLAN = 1550 bytes on the underlay, 50 more than its MTU 1500: lower the tenant MTU to 1450 or raise the underlay MTU to 1550
+PROBLEM: tenant green (VNI 300): MTU 1500 + 50 VXLAN = 1550 bytes on the underlay, 50 more than its MTU 1500: lower the tenant MTU to 1450 or raise the underlay MTU to 1550
+Fix the design and try again: nothing was built.</pre>
+<h3>Flood and learn: the VTEP table before, the flooded broadcast, the table after</h3>
+<p class="file">evidence6/flood.txt</p>
+<pre id="evidence-flood">== hv1: vxlan100 before any traffic
+7e:01:2d:b7:eb:3a vlan 1 master br100 permanent
+7e:01:2d:b7:eb:3a master br100 permanent
+00:00:00:00:00:00 dst 10.40.0.2 self permanent
+00:00:00:00:00:00 dst 10.40.0.3 self permanent
+PING 10.40.50.11 (10.40.50.11) 56(84) bytes of data.
+64 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.762 ms
+64 bytes from 10.40.50.11: icmp_seq=2 ttl=64 time=0.105 ms
+
+--- 10.40.50.11 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1055ms
+rtt min/avg/max/mdev = 0.105/0.433/0.762/0.328 ms
+== captured on hv3&#x27;s underlay
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on hv3-eth0, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+15:58:07.645619 IP 10.40.0.1.53027 &gt; 10.40.0.3.4789: VXLAN, flags [I] (0x08), vni 100
+ARP, Request who-has 10.40.50.11 tell 10.40.50.10, length 28
+
+1 packet captured
+1 packet received by filter
+0 packets dropped by kernel
+== hv1: vxlan100 after
+02:00:00:64:00:0b master br100 
+7e:01:2d:b7:eb:3a vlan 1 master br100 permanent
+7e:01:2d:b7:eb:3a master br100 permanent
+00:00:00:00:00:00 dst 10.40.0.2 self permanent
+00:00:00:00:00:00 dst 10.40.0.3 self permanent
+02:00:00:64:00:0b dst 10.40.0.2 self 
+== hv3: vxlan100 after
+02:00:00:64:00:0a master br100 
+ea:a8:ef:84:1f:c4 vlan 1 master br100 permanent
+ea:a8:ef:84:1f:c4 master br100 permanent
+00:00:00:00:00:00 dst 10.40.0.1 self permanent
+00:00:00:00:00:00 dst 10.40.0.2 self permanent
+02:00:00:64:00:0a dst 10.40.0.1 self</pre>
+<h3>Two tenants, one address: who answers</h3>
+<p class="file">evidence6/isolation.txt</p>
+<pre id="evidence-isolation">PING 10.40.50.11 (10.40.50.11) 56(84) bytes of data.
+64 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.058 ms
+64 bytes from 10.40.50.11: icmp_seq=2 ttl=64 time=0.085 ms
+64 bytes from 10.40.50.11: icmp_seq=3 ttl=64 time=0.069 ms
+
+--- 10.40.50.11 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2081ms
+rtt min/avg/max/mdev = 0.058/0.070/0.085/0.011 ms
+10.40.50.11 dev red1-eth0 lladdr 02:00:00:64:00:0b REACHABLE 
+== captured on blue2 meanwhile
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on blue2-eth0, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+
+0 packets captured
+0 packets received by filter
+0 packets dropped by kernel
+PING 10.40.50.11 (10.40.50.11) 56(84) bytes of data.
+64 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.142 ms
+64 bytes from 10.40.50.11: icmp_seq=2 ttl=64 time=0.065 ms
+
+--- 10.40.50.11 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1017ms
+rtt min/avg/max/mdev = 0.065/0.103/0.142/0.038 ms
+10.40.50.11 dev blue1-eth0 lladdr 02:00:00:c8:00:0b REACHABLE</pre>
+<h3>The black hole: tenant MTU 1500 on a 1500-byte underlay</h3>
+<p class="file">evidence6/blackhole.txt</p>
+<pre id="evidence-blackhole">PING 10.40.50.11 (10.40.50.11) 56(84) bytes of data.
+64 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.141 ms
+64 bytes from 10.40.50.11: icmp_seq=2 ttl=64 time=0.065 ms
+
+--- 10.40.50.11 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1048ms
+rtt min/avg/max/mdev = 0.065/0.103/0.141/0.038 ms
+PING 10.40.50.11 (10.40.50.11) 1472(1500) bytes of data.
+
+--- 10.40.50.11 ping statistics ---
+2 packets transmitted, 0 received, 100% packet loss, time 1022ms
+
+Connecting to host 10.40.50.11, port 5201
+[  5] local 10.40.50.10 port 52962 connected to 10.40.50.11 port 5201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec  0.00 Bytes  0.00 bits/sec    2   1.41 KBytes       
+[  5]   1.00-2.00   sec  0.00 Bytes  0.00 bits/sec    1   1.41 KBytes       
+[  5]   2.00-3.00   sec  0.00 Bytes  0.00 bits/sec    0   1.41 KBytes       
+[  5]   3.00-4.00   sec  0.00 Bytes  0.00 bits/sec    1   1.41 KBytes       
+[  5]   4.00-5.00   sec  0.00 Bytes  0.00 bits/sec    0   1.41 KBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-5.00   sec  0.00 Bytes  0.00 bits/sec    4             sender
+[  5]   0.00-5.00   sec  0.00 Bytes  0.00 bits/sec                  receiver
+
+iperf Done.
+== finding the limit: ping -M do -s &lt;size&gt;
+PING 10.40.50.11 (10.40.50.11) 1400(1428) bytes of data.
+1408 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.061 ms
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.061/0.061/0.061/0.000 ms
+PING 10.40.50.11 (10.40.50.11) 1450(1478) bytes of data.
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 0 received, 100% packet loss, time 0ms
+
+PING 10.40.50.11 (10.40.50.11) 1425(1453) bytes of data.
+From 10.40.50.11 icmp_seq=1 Frag needed and DF set (mtu = 1450)
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 0 received, +1 errors, 100% packet loss, time 0ms
+
+PING 10.40.50.11 (10.40.50.11) 1412(1440) bytes of data.
+1420 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.042 ms
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.042/0.042/0.042/0.000 ms
+PING 10.40.50.11 (10.40.50.11) 1418(1446) bytes of data.
+1426 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.030 ms
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.030/0.030/0.030/0.000 ms
+PING 10.40.50.11 (10.40.50.11) 1421(1449) bytes of data.
+1429 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.030 ms
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.030/0.030/0.030/0.000 ms
+PING 10.40.50.11 (10.40.50.11) 1422(1450) bytes of data.
+1430 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.022 ms
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.022/0.022/0.022/0.000 ms
+PING 10.40.50.11 (10.40.50.11) 1423(1451) bytes of data.
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 0 received, +1 errors, 100% packet loss, time 0ms</pre>
+<h3>Two fixes, measured</h3>
+<p class="file">evidence6/fixes.txt</p>
+<pre id="evidence-fixes">== fix A: tenant MTU 1450
+PING 10.40.50.11 (10.40.50.11) 1422(1450) bytes of data.
+1430 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=1.86 ms
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 1.861/1.861/1.861/0.000 ms
+PING 10.40.50.11 (10.40.50.11) 1423(1451) bytes of data.
+ping: local error: message too long, mtu=1450
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 0 received, +1 errors, 100% packet loss, time 0ms
+
+Connecting to host 10.40.50.11, port 5201
+[  5] local 10.40.50.10 port 42998 connected to 10.40.50.11 port 5201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   728 MBytes  6.10 Gbits/sec    0    657 KBytes       
+[  5]   1.00-2.00   sec   766 MBytes  6.43 Gbits/sec  257    760 KBytes       
+[  5]   2.00-3.00   sec   698 MBytes  5.85 Gbits/sec  312    760 KBytes       
+[  5]   3.00-4.00   sec   790 MBytes  6.63 Gbits/sec    0    760 KBytes       
+[  5]   4.00-5.00   sec   787 MBytes  6.59 Gbits/sec    0    760 KBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-5.00   sec  3.74 GBytes  6.43 Gbits/sec  569             sender
+[  5]   0.00-5.00   sec  3.74 GBytes  6.43 Gbits/sec                  receiver
+
+iperf Done.
+== fix B: underlay MTU 9000
+PING 10.40.50.11 (10.40.50.11) 1472(1500) bytes of data.
+1480 bytes from 10.40.50.11: icmp_seq=1 ttl=64 time=0.401 ms
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.401/0.401/0.401/0.000 ms
+PING 10.40.50.11 (10.40.50.11) 1473(1501) bytes of data.
+ping: local error: message too long, mtu=1500
+
+--- 10.40.50.11 ping statistics ---
+1 packets transmitted, 0 received, +1 errors, 100% packet loss, time 0ms
+
+Connecting to host 10.40.50.11, port 5201
+[  5] local 10.40.50.10 port 58560 connected to 10.40.50.11 port 5201
+[ ID] Interval           Transfer     Bitrate         Retr  Cwnd
+[  5]   0.00-1.00   sec   815 MBytes  6.83 Gbits/sec    0    921 KBytes       
+[  5]   1.00-2.00   sec   822 MBytes  6.91 Gbits/sec   83    971 KBytes       
+[  5]   2.00-3.00   sec   834 MBytes  6.99 Gbits/sec   83    983 KBytes       
+[  5]   3.00-4.00   sec   805 MBytes  6.75 Gbits/sec    0    983 KBytes       
+[  5]   4.00-5.00   sec   793 MBytes  6.65 Gbits/sec    0    990 KBytes       
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-5.00   sec  3.99 GBytes  6.86 Gbits/sec  166             sender
+[  5]   0.00-5.00   sec  3.99 GBytes  6.86 Gbits/sec                  receiver
+
+iperf Done.</pre></section>
+
+<h2>What I learned</h2>
+<section id="answers"><section id="answer-design"><h3>Describe your design: hypervisors, tenants, VNIs and addresses. Which tenants overlap, and why did you place each VM where you did?</h3><p>My data centre has four hypervisors, hv1 to hv4, on the underlay 10.40.0.0/24 (10.40.0.1 to .4), all on one underlay switch s1. There are three tenants. red is VNI 100 on 10.40.50.0/24, blue is VNI 200 on 10.40.50.0/24 as well, and green is VNI 300 on 10.40.60.0/24. Everything is inside 10.40.0.0/16, from my ID.</p><p>red and blue overlap on purpose. They use exactly the same network, so red1 and blue1 are both 10.40.50.10, and red2 and blue2 are both 10.40.50.11. Only the VNI keeps them apart. Their MACs still differ, because the VNI is in the middle: red2 is 02:00:00:64:00:0b (0x64 = 100) and blue2 is 02:00:00:c8:00:0b (0xc8 = 200).</p><p>I put red on three hypervisors (hv1, hv2, hv3) so its flood list has two entries and I could watch a broadcast reach a hypervisor that wasn&#x27;t part of the conversation. blue sits on the same hv1 and hv2 as red, so hv1 and hv2 each host two tenants with the same addresses side by side: two bridges (br100, br200) and two VXLAN devices on one underlay interface. green uses hv3 (shared with red) and hv4, a hypervisor that hosts no red or blue VMs. That shows a VTEP is only in the flood lists of the VNIs it actually hosts.</p></section>
+<section id="answer-isolation"><h3>Two of your VMs have the same IP address. Using your evidence, explain how a ping reaches the right one — and what would have to go wrong for one tenant to see another&#x27;s traffic.</h3><p>red2 and blue2 are both 10.40.50.11. When red1 pinged 10.40.50.11, all 3 replies came back, and red1&#x27;s neighbour table shows 10.40.50.11 at 02:00:00:64:00:0b: VNI 100 in the middle, so red2 answered. During that ping, tcpdump on blue2-eth0 captured 0 packets. When blue1 pinged the same address, its neighbour table shows 02:00:00:c8:00:0b: VNI 200, so blue2 (evidence6/isolation.txt).</p><p>The IP address is never used to pick a tenant. red1 is plugged into hv1&#x27;s br100, whose only way out is vxlan100, so every frame red1 sends leaves the underlay labelled VNI 100. On hv2, the VXLAN layer hands VNI 100 packets only to vxlan100, which sits in br100, which only has red2&#x27;s port. The ARP request and the ping never reach br200, so blue2 can&#x27;t answer and never even sees them.</p><p>For one tenant to see another&#x27;s traffic, the separation by VNI or bridge would have to break. For example, two tenants given the same VNI (check_spec() refuses that), a VM port put into the wrong tenant&#x27;s bridge, both VXLAN devices in one bridge, or a router joining the two bridges. VXLAN also has no authentication: anything that can send UDP 4789 onto the underlay can inject a frame with any VNI. So the underlay itself has to be trusted and closed off from the tenants.</p></section>
+<section id="answer-flood_learn"><h3>Using your evidence, explain what was flooded, to which hypervisors, and what each VTEP learned. With 50 hypervisors in one VNI, how many copies would one broadcast need — and how would EVPN change that?</h3><p>Before any traffic, hv1&#x27;s vxlan100 table held only its flood list, the two entries my tenant_commands() created: 00:00:00:00:00:00 dst 10.40.0.2 and dst 10.40.0.3. red1 pinged red2, so it first broadcast an ARP &quot;who-has 10.40.50.11 tell 10.40.50.10&quot;. hv1 had no learned entry, so it copied the frame to every hypervisor in the list, hv2 and hv3: head-end replication. hv3 captured it on its underlay (10.40.0.1 &gt; 10.40.0.3, VXLAN vni 100, ARP Request who-has 10.40.50.11), even though the ping was only between hv1 and hv2. hv4 got nothing, because it hosts no red VMs and isn&#x27;t in VNI 100&#x27;s flood list.</p><p>Afterwards, hv1 had learned red2&#x27;s MAC 02:00:00:64:00:0b at dst 10.40.0.2, from the ARP reply. hv3 had learned red1&#x27;s MAC 02:00:00:64:00:0a at dst 10.40.0.1, from the flooded request. hv3 captured just that one packet: once the MACs were learned, the ARP reply and the pings went unicast, hv1 to hv2 only.</p><p>With 50 hypervisors in one VNI, every broadcast, and every frame to an unknown MAC, needs 49 copies sent by the source VTEP. EVPN replaces flood-and-learn with a BGP control plane. Each VTEP advertises the MAC and IP addresses of its own VMs (type-2 routes), so every other VTEP knows where a MAC is before any traffic, with no unknown-unicast flooding. With ARP suppression the local VTEP answers ARP itself, so the ARP broadcast often isn&#x27;t sent at all. The flood list is also built automatically from type-3 routes instead of being typed in. Real broadcasts still need copies, but there are far fewer of them.</p></section>
+<section id="answer-mtu"><h3>Compare your two MTU fixes using your measurements. Which would you choose for a data centre, what does each cost, and who has to change what?</h3><p>The black hole first. With tenants at 1500 on a 1500-byte underlay, check_mtu() refused all three tenants (1500 + 50 = 1550, 50 bytes too many). Built anyway with --force, small pings worked but a 1472-byte ping (1500 bytes) was lost, and iperf3 moved 0 bytes in 5 seconds. The largest DF ping that got through was 1422 bytes, which is 1450 with headers: 1450 + 50 = 1500. 1423 failed (evidence6/blackhole.txt).</p><p>Fix A (tenant MTU 1450, underlay 1500): 1422 works and 1423 is refused at the sender with &quot;message too long, mtu=1450&quot;, an honest error instead of a black hole. iperf3 ran at 6.43 Gbit/s. Fix B (tenants 1500, underlay 9000): full 1472-byte pings work, 1473 is refused at mtu=1500, and iperf3 ran at 6.86 Gbit/s, about 7% faster with fewer retransmissions (166 against 569), because every packet carries 50 more bytes of payload (evidence6/fixes.txt).</p><p>I&#x27;d choose B, and overlay.yaml uses it. The cost falls on the operator, once: every underlay switch port, NIC and hypervisor link has to support jumbo frames and be configured for them, and a single device left at 1500 brings the black hole back. Tenants change nothing and see a normal 1500 network, and they could even be offered more. Fix A needs no new hardware, but the cost lands on every tenant forever. Every VM has to be given MTU 1450 (by DHCP or cloud-init), every packet carries less data, and software that assumes 1500 can misbehave. A is the fix when you don&#x27;t own the underlay, for example VXLAN across the internet.</p></section>
+<section id="answer-p4"><h3>If your hypervisors&#x27; VTEPs were P4 switches running the lecture&#x27;s vtep.p4, what would have to fill the vtep_encap table, and how? What would replace flood-and-learn?</h3><p>A P4 switch doesn&#x27;t learn by itself. Its tables are empty until a control plane writes entries, so vtep_encap would have to be filled by a controller over P4Runtime. Each entry maps a tenant&#x27;s destination (its VNI and the destination VM&#x27;s MAC) to an action that adds the VXLAN, UDP and outer IP headers with the right remote VTEP address, for example VNI 100 + 02:00:00:64:00:0b → encapsulate to 10.40.0.2.</p><p>The controller doesn&#x27;t need to learn anything, because the data centre already knows where every VM is. My overlay.yaml and plan() hold every VM&#x27;s tenant, VNI, MAC and hypervisor. A controller could turn that inventory into vtep_encap entries for every hypervisor, the same way tenant_commands() turns it into Linux commands, and update them when a VM is created or moved.</p><p>That replaces flood-and-learn with control-plane learning, the same idea as EVPN: entries are installed before traffic flows, so there are no unknown MACs to flood. ARP could be answered by the controller or by a proxy-ARP table on the switch, since it knows every IP-to-MAC binding. Real broadcasts would use a multicast group in the switch&#x27;s replication engine, listing the tenant&#x27;s other hypervisors, which is the P4 version of my 00:00:00:00:00:00 flood list.</p></section></section>
+
+<script type="application/json" id="overlay-data">{
+  "design": {
+    "student_id_last4": 3540,
+    "underlay": {
+      "network": "10.40.0.0/24",
+      "mtu": 9000
+    },
+    "hypervisors": [
+      "hv1",
+      "hv2",
+      "hv3",
+      "hv4"
+    ],
+    "tenants": [
+      {
+        "name": "red",
+        "vni": 100,
+        "network": "10.40.50.0/24",
+        "mtu": 1500,
+        "vms": [
+          [
+            "red1",
+            "hv1"
+          ],
+          [
+            "red2",
+            "hv2"
+          ],
+          [
+            "red3",
+            "hv3"
+          ]
+        ]
+      },
+      {
+        "name": "blue",
+        "vni": 200,
+        "network": "10.40.50.0/24",
+        "mtu": 1500,
+        "vms": [
+          [
+            "blue1",
+            "hv1"
+          ],
+          [
+            "blue2",
+            "hv2"
+          ]
+        ]
+      },
+      {
+        "name": "green",
+        "vni": 300,
+        "network": "10.40.60.0/24",
+        "mtu": 1500,
+        "vms": [
+          [
+            "green1",
+            "hv3"
+          ],
+          [
+            "green2",
+            "hv4"
+          ]
+        ]
+      }
+    ]
+  },
+  "commands": {
+    "hv1": [
+      "ip link add br100 type bridge",
+      "ip link set br100 up",
+      "ip link add vxlan100 type vxlan id 100 local 10.40.0.1 dstport 4789 dev hv1-eth0",
+      "ip link set vxlan100 master br100",
+      "ip link set vxlan100 up",
+      "ip link set hv1-eth1 master br100",
+      "ip link set hv1-eth1 up",
+      "bridge fdb append 00:00:00:00:00:00 dev vxlan100 dst 10.40.0.2",
+      "bridge fdb append 00:00:00:00:00:00 dev vxlan100 dst 10.40.0.3",
+      "ip link add br200 type bridge",
+      "ip link set br200 up",
+      "ip link add vxlan200 type vxlan id 200 local 10.40.0.1 dstport 4789 dev hv1-eth0",
+      "ip link set vxlan200 master br200",
+      "ip link set vxlan200 up",
+      "ip link set hv1-eth2 master br200",
+      "ip link set hv1-eth2 up",
+      "bridge fdb append 00:00:00:00:00:00 dev vxlan200 dst 10.40.0.2"
+    ],
+    "hv2": [
+      "ip link add br100 type bridge",
+      "ip link set br100 up",
+      "ip link add vxlan100 type vxlan id 100 local 10.40.0.2 dstport 4789 dev hv2-eth0",
+      "ip link set vxlan100 master br100",
+      "ip link set vxlan100 up",
+      "ip link set hv2-eth1 master br100",
+      "ip link set hv2-eth1 up",
+      "bridge fdb append 00:00:00:00:00:00 dev vxlan100 dst 10.40.0.1",
+      "bridge fdb append 00:00:00:00:00:00 dev vxlan100 dst 10.40.0.3",
+      "ip link add br200 type bridge",
+      "ip link set br200 up",
+      "ip link add vxlan200 type vxlan id 200 local 10.40.0.2 dstport 4789 dev hv2-eth0",
+      "ip link set vxlan200 master br200",
+      "ip link set vxlan200 up",
+      "ip link set hv2-eth2 master br200",
+      "ip link set hv2-eth2 up",
+      "bridge fdb append 00:00:00:00:00:00 dev vxlan200 dst 10.40.0.1"
+    ],
+    "hv3": [
+      "ip link add br100 type bridge",
+      "ip link set br100 up",
+      "ip link add vxlan100 type vxlan id 100 local 10.40.0.3 dstport 4789 dev hv3-eth0",
+      "ip link set vxlan100 master br100",
+      "ip link set vxlan100 up",
+      "ip link set hv3-eth1 master br100",
+      "ip link set hv3-eth1 up",
+      "bridge fdb append 00:00:00:00:00:00 dev vxlan100 dst 10.40.0.1",
+      "bridge fdb append 00:00:00:00:00:00 dev vxlan100 dst 10.40.0.2",
+      "ip link add br300 type bridge",
+      "ip link set br300 up",
+      "ip link add vxlan300 type vxlan id 300 local 10.40.0.3 dstport 4789 dev hv3-eth0",
+      "ip link set vxlan300 master br300",
+      "ip link set vxlan300 up",
+      "ip link set hv3-eth2 master br300",
+      "ip link set hv3-eth2 up",
+      "bridge fdb append 00:00:00:00:00:00 dev vxlan300 dst 10.40.0.4"
+    ],
+    "hv4": [
+      "ip link add br300 type bridge",
+      "ip link set br300 up",
+      "ip link add vxlan300 type vxlan id 300 local 10.40.0.4 dstport 4789 dev hv4-eth0",
+      "ip link set vxlan300 master br300",
+      "ip link set vxlan300 up",
+      "ip link set hv4-eth1 master br300",
+      "ip link set hv4-eth1 up",
+      "bridge fdb append 00:00:00:00:00:00 dev vxlan300 dst 10.40.0.3"
+    ]
+  }
+}</script>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: true });
+</script>
+</body>
+</html>

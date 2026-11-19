@@ -1,0 +1,25 @@
+mininet> h1 ip -6 addr add fd00:3540::1/64 dev h1-eth0
+mininet> h2 ip -6 addr add fd00:3540::2/64 dev h2-eth0
+mininet> h1 ping -6 -c 2 fd00:3540::2
+64 bytes from fd00:3540::2: icmp_seq=1 ttl=64 time=0.081 ms
+64 bytes from fd00:3540::2: icmp_seq=2 ttl=64 time=0.052 ms
+2 packets transmitted, 2 received, 0% packet loss, time 1000ms
+
+mininet> h1 ping -c 2 10.40.106.2
+64 bytes from 10.40.106.2: icmp_seq=1 ttl=64 time=0.112 ms
+64 bytes from 10.40.106.2: icmp_seq=2 ttl=64 time=0.063 ms
+2 packets transmitted, 2 received, 0% packet loss, time 1004ms
+
+mininet> h1 ip link show vxlan106
+4: vxlan106: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1430 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/ether d2:fd:82:c7:14:67 brd ff:ff:ff:ff:ff:ff
+
+mininet> h1 ping -M do -c 1 -s 1402 10.40.106.2
+PING 10.40.106.2 (10.40.106.2) 1402(1430) bytes of data.
+1410 bytes from 10.40.106.2: icmp_seq=1 ttl=64 time=0.291 ms
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+
+mininet> h1 ping -M do -c 1 -s 1403 10.40.106.2
+PING 10.40.106.2 (10.40.106.2) 1403(1431) bytes of data.
+ping: local error: message too long, mtu=1430
+1 packets transmitted, 0 received, +1 errors, 100% packet loss, time 0ms
