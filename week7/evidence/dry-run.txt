@@ -1,0 +1,25 @@
+
+$ python3 sync.py intent.yaml --dry-run
+Intent (intent.yaml): 6 VLANs + VLAN 1, 5 ACL entries
+Reading the current state from http://api:8000 ...
+  logged in as netops
+  API has 4 VLANs (1, 10, 20, 99) and 0 ACL entries
+Plan: 11 changes
+  PUT    /api/v1/vlans/10         rename VLAN 10 users -> staff
+  PUT    /api/v1/vlans/30         create VLAN 30 guests
+  PUT    /api/v1/vlans/40         create VLAN 40 voice
+  PUT    /api/v1/vlans/50         create VLAN 50 mgmt
+  PUT    /api/v1/vlans/60         create VLAN 60 iot
+  DELETE /api/v1/vlans/99         delete VLAN 99 old-guest
+  POST   /api/v1/acl/entries      add ACL permit 10.40.10.0/24 -> 10.40.20.0/24 tcp/443 staff-to-servers-https  [Idempotency-Key sync-98c87fd5-7462-4c09-b1a4-eb1dc078f856]
+  POST   /api/v1/acl/entries      add ACL deny 10.40.30.0/24 -> 10.40.20.0/24 tcp/22 guests-no-ssh  [Idempotency-Key sync-a33948cd-1145-4c65-9366-72c59258d40e]
+  POST   /api/v1/acl/entries      add ACL permit 10.40.40.0/24 -> 10.40.20.0/24 udp/5060 voice-to-sip-server  [Idempotency-Key sync-babf9171-6d26-46c5-a5e8-cc6dbd1ebae9]
+  POST   /api/v1/acl/entries      add ACL deny 10.40.60.0/24 -> 10.40.50.0/24 any iot-no-mgmt  [Idempotency-Key sync-d731a4a1-8e5d-4b06-b0dd-a57933758688]
+  POST   /api/v1/acl/entries      add ACL permit 10.40.50.0/24 -> 10.40.0.0/16 icmp mgmt-can-ping-all  [Idempotency-Key sync-0bbf6e88-f95a-4890-b471-b68ea88daf2c]
+Dry run: nothing changed. (3 requests, all reads and logins)
+
+$ GET /api/v1/lab/audit
+{
+    "writes": 0,
+    "items": []
+}

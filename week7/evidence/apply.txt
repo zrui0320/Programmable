@@ -1,0 +1,227 @@
+
+$ PUT /api/v1/lab/chaos {"lose_responses": 0.3, "errors_503": 0.2}
+{
+  "lose_responses": 0.3,
+  "errors_503": 0.2
+}
+
+
+$ python3 sync.py intent.yaml
+Intent (intent.yaml): 6 VLANs + VLAN 1, 5 ACL entries
+Reading the current state from http://api:8000 ...
+  logged in as netops
+  API has 4 VLANs (1, 10, 20, 99) and 0 ACL entries
+Plan: 11 changes
+  PUT    /api/v1/vlans/10         rename VLAN 10 users -> staff
+  PUT    /api/v1/vlans/30         create VLAN 30 guests
+  PUT    /api/v1/vlans/40         create VLAN 40 voice
+  PUT    /api/v1/vlans/50         create VLAN 50 mgmt
+  PUT    /api/v1/vlans/60         create VLAN 60 iot
+  DELETE /api/v1/vlans/99         delete VLAN 99 old-guest
+  POST   /api/v1/acl/entries      add ACL permit 10.40.10.0/24 -> 10.40.20.0/24 tcp/443 staff-to-servers-https  [Idempotency-Key sync-03135567-256e-434c-99d0-72ece0ce243b]
+  POST   /api/v1/acl/entries      add ACL deny 10.40.30.0/24 -> 10.40.20.0/24 tcp/22 guests-no-ssh  [Idempotency-Key sync-40b104ef-86ee-45a4-ad64-f6b70c02291b]
+  POST   /api/v1/acl/entries      add ACL permit 10.40.40.0/24 -> 10.40.20.0/24 udp/5060 voice-to-sip-server  [Idempotency-Key sync-3fddc84a-21ff-40f9-b6f4-62f3d16db50e]
+  POST   /api/v1/acl/entries      add ACL deny 10.40.60.0/24 -> 10.40.50.0/24 any iot-no-mgmt  [Idempotency-Key sync-65271398-6ad0-402a-8cc8-99c8fbf645b3]
+  POST   /api/v1/acl/entries      add ACL permit 10.40.50.0/24 -> 10.40.0.0/16 icmp mgmt-can-ping-all  [Idempotency-Key sync-673e11f5-6c38-494e-bcb5-054f03f45daa]
+Applying ...
+  PUT /api/v1/vlans/10: 503: try 1 failed, retrying in 1.4s
+  [1/11] rename VLAN 10 users -> staff: 200
+  PUT /api/v1/vlans/30: 503: try 1 failed, retrying in 1.2s
+  PUT /api/v1/vlans/30: 503: try 2 failed, retrying in 2.4s
+  [2/11] create VLAN 30 guests: 201
+  [3/11] create VLAN 40 voice: 201
+  [4/11] create VLAN 50 mgmt: 201
+  [5/11] create VLAN 60 iot: 201
+  DELETE /api/v1/vlans/99: no response (ConnectionError): try 1 failed, retrying in 1.3s
+  [6/11] delete VLAN 99 old-guest: 404 (already gone: an earlier attempt had worked)
+  [7/11] add ACL permit 10.40.10.0/24 -> 10.40.20.0/24 tcp/443 staff-to-servers-https: 201
+  [8/11] add ACL deny 10.40.30.0/24 -> 10.40.20.0/24 tcp/22 guests-no-ssh: 201
+  POST /api/v1/acl/entries: no response (ConnectionError): try 1 failed, retrying in 1.2s
+  [9/11] add ACL permit 10.40.40.0/24 -> 10.40.20.0/24 udp/5060 voice-to-sip-server: 201 (replayed: the first attempt had worked, not applied again)
+  [10/11] add ACL deny 10.40.60.0/24 -> 10.40.50.0/24 any iot-no-mgmt: 201
+  POST /api/v1/acl/entries: no response (ConnectionError): try 1 failed, retrying in 1.4s
+  [11/11] add ACL permit 10.40.50.0/24 -> 10.40.0.0/16 icmp mgmt-can-ping-all: 201 (replayed: the first attempt had worked, not applied again)
+Checking: reading the state back ...
+RESULT: MATCHES - 7 VLANs (1, 10, 20, 30, 40, 50, 60) and 5 ACL entries, exactly as intent.yaml says. (22 requests, 1 logins)
+
+$ GET /api/v1/lab/audit
+{
+    "writes": 11,
+    "items": [
+        {
+            "seq": 1,
+            "time": "09:45:39",
+            "method": "PUT",
+            "path": "/api/v1/vlans/10",
+            "status": 200,
+            "change": "set VLAN 10 staff"
+        },
+        {
+            "seq": 2,
+            "time": "09:45:42",
+            "method": "PUT",
+            "path": "/api/v1/vlans/30",
+            "status": 201,
+            "change": "created VLAN 30 guests"
+        },
+        {
+            "seq": 3,
+            "time": "09:45:42",
+            "method": "PUT",
+            "path": "/api/v1/vlans/40",
+            "status": 201,
+            "change": "created VLAN 40 voice"
+        },
+        {
+            "seq": 4,
+            "time": "09:45:42",
+            "method": "PUT",
+            "path": "/api/v1/vlans/50",
+            "status": 201,
+            "change": "created VLAN 50 mgmt"
+        },
+        {
+            "seq": 5,
+            "time": "09:45:42",
+            "method": "PUT",
+            "path": "/api/v1/vlans/60",
+            "status": 201,
+            "change": "created VLAN 60 iot"
+        },
+        {
+            "seq": 6,
+            "time": "09:45:42",
+            "method": "DELETE",
+            "path": "/api/v1/vlans/99",
+            "status": 204,
+            "change": "deleted VLAN 99"
+        },
+        {
+            "seq": 7,
+            "time": "09:45:43",
+            "method": "POST",
+            "path": "/api/v1/acl/entries",
+            "status": 201,
+            "change": "added ACL entry 1: permit 10.40.10.0/24 \u2192 10.40.20.0/24 tcp/443"
+        },
+        {
+            "seq": 8,
+            "time": "09:45:43",
+            "method": "POST",
+            "path": "/api/v1/acl/entries",
+            "status": 201,
+            "change": "added ACL entry 2: deny 10.40.30.0/24 \u2192 10.40.20.0/24 tcp/22"
+        },
+        {
+            "seq": 9,
+            "time": "09:45:43",
+            "method": "POST",
+            "path": "/api/v1/acl/entries",
+            "status": 201,
+            "change": "added ACL entry 3: permit 10.40.40.0/24 \u2192 10.40.20.0/24 udp/5060"
+        },
+        {
+            "seq": 10,
+            "time": "09:45:45",
+            "method": "POST",
+            "path": "/api/v1/acl/entries",
+            "status": 201,
+            "change": "added ACL entry 4: deny 10.40.60.0/24 \u2192 10.40.50.0/24 any"
+        },
+        {
+            "seq": 11,
+            "time": "09:45:45",
+            "method": "POST",
+            "path": "/api/v1/acl/entries",
+            "status": 201,
+            "change": "added ACL entry 5: permit 10.40.50.0/24 \u2192 10.40.0.0/16 icmp"
+        }
+    ]
+}
+
+$ GET /api/v1/vlans
+{
+    "items": [
+        {
+            "id": 1,
+            "name": "default"
+        },
+        {
+            "id": 10,
+            "name": "staff"
+        },
+        {
+            "id": 20,
+            "name": "servers"
+        },
+        {
+            "id": 30,
+            "name": "guests"
+        },
+        {
+            "id": 40,
+            "name": "voice"
+        },
+        {
+            "id": 50,
+            "name": "mgmt"
+        },
+        {
+            "id": 60,
+            "name": "iot"
+        }
+    ],
+    "next": null
+}
+
+$ GET /api/v1/acl/entries
+{
+    "items": [
+        {
+            "id": 1,
+            "action": "permit",
+            "src": "10.40.10.0/24",
+            "dst": "10.40.20.0/24",
+            "protocol": "tcp",
+            "port": 443,
+            "description": "staff-to-servers-https"
+        },
+        {
+            "id": 2,
+            "action": "deny",
+            "src": "10.40.30.0/24",
+            "dst": "10.40.20.0/24",
+            "protocol": "tcp",
+            "port": 22,
+            "description": "guests-no-ssh"
+        },
+        {
+            "id": 3,
+            "action": "permit",
+            "src": "10.40.40.0/24",
+            "dst": "10.40.20.0/24",
+            "protocol": "udp",
+            "port": 5060,
+            "description": "voice-to-sip-server"
+        },
+        {
+            "id": 4,
+            "action": "deny",
+            "src": "10.40.60.0/24",
+            "dst": "10.40.50.0/24",
+            "protocol": "any",
+            "port": null,
+            "description": "iot-no-mgmt"
+        },
+        {
+            "id": 5,
+            "action": "permit",
+            "src": "10.40.50.0/24",
+            "dst": "10.40.0.0/16",
+            "protocol": "icmp",
+            "port": null,
+            "description": "mgmt-can-ping-all"
+        }
+    ],
+    "next": null
+}

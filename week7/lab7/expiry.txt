@@ -1,0 +1,21 @@
+logged in as netops
+429: rate limited, waiting 1s
+429: rate limited, waiting 1s
+429: rate limited, waiting 1s
+429: rate limited, waiting 1s
+429: rate limited, waiting 1s
+401: token expired, logging in again
+logged in as netops
+429: rate limited, waiting 1s
+429: rate limited, waiting 1s
+429: rate limited, waiting 1s
+429: rate limited, waiting 1s
+429: rate limited, waiting 1s
+401: token expired, logging in again
+logged in as netops
+429: rate limited, waiting 1s
+240 devices read (the API says 240), in 37 requests; saved devices.json
+  johor: 60
+  kl-hq: 60
+  penang: 60
+  pj-dc: 60

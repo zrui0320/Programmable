@@ -1,0 +1,56 @@
+[
+    {
+        "Name": "apilab",
+        "Id": "1d9d5dee951b485aec44823b7c2137fb6db1614c94007e33bf8d7102fce6a7de",
+        "Created": "2026-11-24T16:11:30.062687226+08:00",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv4": true,
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": {},
+            "Config": [
+                {
+                    "Subnet": "172.19.0.0/16",
+                    "Gateway": "172.19.0.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Options": {},
+        "Labels": {},
+        "Containers": {
+            "9a3458a1b38ce79ac17c93d92e3dff0d79d74243d44fbf47a276b22216ace48c": {
+                "Name": "api",
+                "EndpointID": "021b1d9d268bb58a14d33063148d8a8d7750aeb31e17114ced81cd284bc68410",
+                "MacAddress": "66:98:82:2d:b1:df",
+                "IPv4Address": "172.19.0.2/16",
+                "IPv6Address": ""
+            },
+            "f723c1c272f98f6d70c8f4b8c65ac76e5dba6f1d9908698f88e0b11f076e87ba": {
+                "Name": "client",
+                "EndpointID": "dbffaca4bb656dd1f2e17e11cd66e3994aebb58242ebd0667e7a8d4a0fea1412",
+                "MacAddress": "76:be:3e:26:4c:a0",
+                "IPv4Address": "172.19.0.3/16",
+                "IPv6Address": ""
+            }
+        },
+        "Status": {
+            "IPAM": {
+                "Subnets": {
+                    "172.19.0.0/16": {
+                        "IPsInUse": 5,
+                        "DynamicIPsAvailable": 65531
+                    }
+                }
+            }
+        }
+    }
+]

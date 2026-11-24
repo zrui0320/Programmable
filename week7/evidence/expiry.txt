@@ -1,0 +1,132 @@
+
+$ python3 sync.py intent.yaml
+Intent (intent.yaml): 6 VLANs + VLAN 1, 5 ACL entries
+Reading the current state from http://api:8000 ...
+  logged in as netops
+  API has 4 VLANs (1, 10, 20, 99) and 0 ACL entries
+Plan: 11 changes
+  PUT    /api/v1/vlans/10         rename VLAN 10 users -> staff
+  PUT    /api/v1/vlans/30         create VLAN 30 guests
+  PUT    /api/v1/vlans/40         create VLAN 40 voice
+  PUT    /api/v1/vlans/50         create VLAN 50 mgmt
+  PUT    /api/v1/vlans/60         create VLAN 60 iot
+  DELETE /api/v1/vlans/99         delete VLAN 99 old-guest
+  POST   /api/v1/acl/entries      add ACL permit 10.40.10.0/24 -> 10.40.20.0/24 tcp/443 staff-to-servers-https  [Idempotency-Key sync-a2212740-df34-467f-ba41-0f73fa6e5918]
+  POST   /api/v1/acl/entries      add ACL deny 10.40.30.0/24 -> 10.40.20.0/24 tcp/22 guests-no-ssh  [Idempotency-Key sync-128cb18f-a22e-49da-a42b-8ff5c1b6d4f5]
+  POST   /api/v1/acl/entries      add ACL permit 10.40.40.0/24 -> 10.40.20.0/24 udp/5060 voice-to-sip-server  [Idempotency-Key sync-e64fc842-aeba-4bb0-81ad-8b6ac6555be4]
+  POST   /api/v1/acl/entries      add ACL deny 10.40.60.0/24 -> 10.40.50.0/24 any iot-no-mgmt  [Idempotency-Key sync-71d891cd-66de-4a22-aa4d-ac0436690f5b]
+  POST   /api/v1/acl/entries      add ACL permit 10.40.50.0/24 -> 10.40.0.0/16 icmp mgmt-can-ping-all  [Idempotency-Key sync-c54ad1f7-c9f9-4e4a-9a83-fe60d0cb4767]
+Applying ...
+  429: rate limited, waiting 1s
+  [1/11] rename VLAN 10 users -> staff: 200
+  [2/11] create VLAN 30 guests: 201
+  429: rate limited, waiting 1s
+  [3/11] create VLAN 40 voice: 201
+  [4/11] create VLAN 50 mgmt: 201
+  429: rate limited, waiting 1s
+  401: token expired, logging in again
+  logged in as netops
+  [5/11] create VLAN 60 iot: 201
+  [6/11] delete VLAN 99 old-guest: 204
+  429: rate limited, waiting 1s
+  [7/11] add ACL permit 10.40.10.0/24 -> 10.40.20.0/24 tcp/443 staff-to-servers-https: 201
+  [8/11] add ACL deny 10.40.30.0/24 -> 10.40.20.0/24 tcp/22 guests-no-ssh: 201
+  429: rate limited, waiting 1s
+  [9/11] add ACL permit 10.40.40.0/24 -> 10.40.20.0/24 udp/5060 voice-to-sip-server: 201
+  [10/11] add ACL deny 10.40.60.0/24 -> 10.40.50.0/24 any iot-no-mgmt: 201
+  429: rate limited, waiting 1s
+  401: token expired, logging in again
+  logged in as netops
+  [11/11] add ACL permit 10.40.50.0/24 -> 10.40.0.0/16 icmp mgmt-can-ping-all: 201
+Checking: reading the state back ...
+  429: rate limited, waiting 1s
+RESULT: MATCHES - 7 VLANs (1, 10, 20, 30, 40, 50, 60) and 5 ACL entries, exactly as intent.yaml says. (27 requests, 3 logins)
+$ GET /api/v1/lab/audit
+    "writes": 11,
+
+$ GET /api/v1/vlans
+{
+    "items": [
+        {
+            "id": 1,
+            "name": "default"
+        },
+        {
+            "id": 10,
+            "name": "staff"
+        },
+        {
+            "id": 20,
+            "name": "servers"
+        },
+        {
+            "id": 30,
+            "name": "guests"
+        },
+        {
+            "id": 40,
+            "name": "voice"
+        },
+        {
+            "id": 50,
+            "name": "mgmt"
+        },
+        {
+            "id": 60,
+            "name": "iot"
+        }
+    ],
+    "next": null
+}
+
+$ GET /api/v1/acl/entries
+{
+    "items": [
+        {
+            "id": 1,
+            "action": "permit",
+            "src": "10.40.10.0/24",
+            "dst": "10.40.20.0/24",
+            "protocol": "tcp",
+            "port": 443,
+            "description": "staff-to-servers-https"
+        },
+        {
+            "id": 2,
+            "action": "deny",
+            "src": "10.40.30.0/24",
+            "dst": "10.40.20.0/24",
+            "protocol": "tcp",
+            "port": 22,
+            "description": "guests-no-ssh"
+        },
+        {
+            "id": 3,
+            "action": "permit",
+            "src": "10.40.40.0/24",
+            "dst": "10.40.20.0/24",
+            "protocol": "udp",
+            "port": 5060,
+            "description": "voice-to-sip-server"
+        },
+        {
+            "id": 4,
+            "action": "deny",
+            "src": "10.40.60.0/24",
+            "dst": "10.40.50.0/24",
+            "protocol": "any",
+            "port": null,
+            "description": "iot-no-mgmt"
+        },
+        {
+            "id": 5,
+            "action": "permit",
+            "src": "10.40.50.0/24",
+            "dst": "10.40.0.0/16",
+            "protocol": "icmp",
+            "port": null,
+            "description": "mgmt-can-ping-all"
+        }
+    ],
+    "next": null
+}

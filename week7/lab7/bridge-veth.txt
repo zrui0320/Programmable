@@ -1,0 +1,8 @@
+$ ip -br link | grep -E "br-|veth"
+br-1d9d5dee951b  UP             46:c4:43:d2:3f:13 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+veth518d1d3@if2  UP             ba:ca:99:6c:07:11 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+vethbf878f4@if2  UP             de:76:45:99:26:f4 <BROADCAST,MULTICAST,UP,LOWER_UP> 
+
+$ bridge link
+6: veth518d1d3@ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 master br-1d9d5dee951b state forwarding priority 32 cost 2 
+7: vethbf878f4@ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 master br-1d9d5dee951b state forwarding priority 32 cost 2 

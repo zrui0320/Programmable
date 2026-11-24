@@ -1,0 +1,80 @@
+# Step 7: list the devices at one site (penang) with the site filter found in the OpenAPI document
+API=http://api:8000/api/v1
+TOKEN=$(curl -s -X POST $API/auth/token -H 'Content-Type: application/json' -d "{\"username\": \"$LAB_USERNAME\", \"password\": \"$LAB_PASSWORD\"}" | python3 -c 'import sys,json; print(json.load(sys.stdin)["token"])')
+# page 1: limit 50 (the documented maximum); headers show X-Total-Count for this site only
+curl -s -D - "$API/devices?site=penang&limit=50" -H "Authorization: Bearer $TOKEN" -o page1.json | grep -iE '^HTTP|^X-Total-Count'
+HTTP/1.1 200 OK
+X-Total-Count: 60
+python3 -c 'import json; b=json.load(open("page1.json")); [print(d["name"], d["site"], d["mgmt_ip"], d["model"]) for d in b["items"]]; print("next:", b["next"])'
+sw-penang-001 penang 10.40.202.1 C9200L-24T
+sw-penang-002 penang 10.40.202.2 N9K-C93180YC
+sw-penang-003 penang 10.40.202.3 C9200L-24T
+sw-penang-004 penang 10.40.202.4 C9300-48P
+sw-penang-005 penang 10.40.202.5 C9200L-24T
+sw-penang-006 penang 10.40.202.6 C9200L-24T
+sw-penang-007 penang 10.40.202.7 C9200L-24T
+sw-penang-008 penang 10.40.202.8 C9200L-24T
+sw-penang-009 penang 10.40.202.9 N9K-C93180YC
+sw-penang-010 penang 10.40.202.10 ISR4331
+sw-penang-011 penang 10.40.202.11 C9200L-24T
+sw-penang-012 penang 10.40.202.12 N9K-C93180YC
+sw-penang-013 penang 10.40.202.13 ISR4331
+sw-penang-014 penang 10.40.202.14 ISR4331
+sw-penang-015 penang 10.40.202.15 C9200L-24T
+sw-penang-016 penang 10.40.202.16 N9K-C93180YC
+sw-penang-017 penang 10.40.202.17 C9300-48P
+sw-penang-018 penang 10.40.202.18 N9K-C93180YC
+sw-penang-019 penang 10.40.202.19 ISR4331
+sw-penang-020 penang 10.40.202.20 C9200L-24T
+sw-penang-021 penang 10.40.202.21 C9300-48P
+sw-penang-022 penang 10.40.202.22 ISR4331
+sw-penang-023 penang 10.40.202.23 C9200L-24T
+sw-penang-024 penang 10.40.202.24 C9200L-24T
+sw-penang-025 penang 10.40.202.25 N9K-C93180YC
+sw-penang-026 penang 10.40.202.26 C9200L-24T
+sw-penang-027 penang 10.40.202.27 N9K-C93180YC
+sw-penang-028 penang 10.40.202.28 N9K-C93180YC
+sw-penang-029 penang 10.40.202.29 C9300-48P
+sw-penang-030 penang 10.40.202.30 C9200L-24T
+sw-penang-031 penang 10.40.202.31 ISR4331
+sw-penang-032 penang 10.40.202.32 ISR4331
+sw-penang-033 penang 10.40.202.33 C9300-48P
+sw-penang-034 penang 10.40.202.34 ISR4331
+sw-penang-035 penang 10.40.202.35 C9300-48P
+sw-penang-036 penang 10.40.202.36 C9300-48P
+sw-penang-037 penang 10.40.202.37 N9K-C93180YC
+sw-penang-038 penang 10.40.202.38 ISR4331
+sw-penang-039 penang 10.40.202.39 C9200L-24T
+sw-penang-040 penang 10.40.202.40 C9200L-24T
+sw-penang-041 penang 10.40.202.41 C9200L-24T
+sw-penang-042 penang 10.40.202.42 N9K-C93180YC
+sw-penang-043 penang 10.40.202.43 ISR4331
+sw-penang-044 penang 10.40.202.44 C9300-48P
+sw-penang-045 penang 10.40.202.45 C9200L-24T
+sw-penang-046 penang 10.40.202.46 C9300-48P
+sw-penang-047 penang 10.40.202.47 ISR4331
+sw-penang-048 penang 10.40.202.48 ISR4331
+sw-penang-049 penang 10.40.202.49 C9200L-24T
+sw-penang-050 penang 10.40.202.50 C9300-48P
+next: http://api:8000/api/v1/devices?limit=50&cursor=c3ctcGVuYW5nLTA1MA&site=penang
+sleep 1
+# page 2: follow the next URL exactly as given (it keeps site=penang)
+NEXT=$(python3 -c 'import json; print(json.load(open("page1.json"))["next"])')
+curl -s -D - "$NEXT" -H "Authorization: Bearer $TOKEN" -o page2.json | grep -iE '^HTTP|^X-Total-Count'
+HTTP/1.1 200 OK
+X-Total-Count: 60
+python3 -c 'import json; b=json.load(open("page2.json")); [print(d["name"], d["site"], d["mgmt_ip"], d["model"]) for d in b["items"]]; print("next:", b["next"])'
+sw-penang-051 penang 10.40.202.51 ISR4331
+sw-penang-052 penang 10.40.202.52 C9300-48P
+sw-penang-053 penang 10.40.202.53 ISR4331
+sw-penang-054 penang 10.40.202.54 C9300-48P
+sw-penang-055 penang 10.40.202.55 ISR4331
+sw-penang-056 penang 10.40.202.56 ISR4331
+sw-penang-057 penang 10.40.202.57 N9K-C93180YC
+sw-penang-058 penang 10.40.202.58 C9200L-24T
+sw-penang-059 penang 10.40.202.59 ISR4331
+sw-penang-060 penang 10.40.202.60 N9K-C93180YC
+next: None
+python3 -c 'import json; n=sum(len(json.load(open(f))["items"]) for f in ("page1.json","page2.json")); print("penang devices listed:", n)'
+penang devices listed: 60
+rm -f page1.json page2.json

@@ -1,0 +1,2 @@
+Idempotency-Key: d9d485c1-4a82-401e-bebd-669803a56c2f
+attempt 1: 201 Created: {'id': 15, 'action': 'deny', 'src': '10.40.30.0/24', 'dst': '10.40.20.0/24', 'protocol': 'tcp', 'port': 22, 'description': 'guests may not SSH to servers'}

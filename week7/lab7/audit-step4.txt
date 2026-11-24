@@ -1,0 +1,29 @@
+{
+    "writes": 3,
+    "items": [
+        {
+            "seq": 14,
+            "time": "08:39:00",
+            "method": "POST",
+            "path": "/api/v1/acl/entries",
+            "status": 201,
+            "change": "added ACL entry 12: deny 10.40.30.0/24 \u2192 10.40.20.0/24 tcp/22"
+        },
+        {
+            "seq": 15,
+            "time": "08:39:03",
+            "method": "POST",
+            "path": "/api/v1/acl/entries",
+            "status": 201,
+            "change": "added ACL entry 13: deny 10.40.30.0/24 \u2192 10.40.20.0/24 tcp/22"
+        },
+        {
+            "seq": 16,
+            "time": "08:39:05",
+            "method": "POST",
+            "path": "/api/v1/acl/entries",
+            "status": 201,
+            "change": "added ACL entry 14: deny 10.40.30.0/24 \u2192 10.40.20.0/24 tcp/22"
+        }
+    ]
+}
