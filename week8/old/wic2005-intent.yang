@@ -1,0 +1,128 @@
+module wic2005-intent {
+  yang-version 1.1;
+  namespace "urn:wic2005:intent";
+  prefix wi;
+
+  import ietf-inet-types {
+    prefix inet;
+  }
+
+  description
+    "Intent for the WIC2005 lab API: the VLANs and the ACL it should hold.";
+
+  revision 2026-11-27 {
+    description
+      "Initial revision: the rules from Week 7's intent.yaml comments.";
+  }
+
+  typedef own-prefix {
+    type inet:ipv4-prefix {
+      pattern '10\.40\.[0-9]+\.[0-9]+/(1[6-9]|2[0-9]|3[0-2])' {
+        error-message "Address must be a prefix inside 10.40.0.0/16.";
+      }
+    }
+    description
+      "An IPv4 prefix inside my own block, 10.40.0.0/16.";
+  }
+
+  container intent {
+    description
+      "The whole intent: what the API should hold.";
+
+    must "count(acl[action = 'permit']) >= 1" {
+      error-message "The ACL needs at least one permit entry.";
+    }
+    must "count(acl[action = 'deny']) >= 1" {
+      error-message "The ACL needs at least one deny entry.";
+    }
+    must "count(acl[port]) >= 1" {
+      error-message "The ACL needs at least one entry with a port.";
+    }
+
+    leaf student-id-last4 {
+      type string {
+        pattern '[0-9]{4}';
+      }
+      description
+        "Last 4 digits of the student ID.";
+    }
+
+    list vlan {
+      key "id";
+      min-elements 6;
+      description
+        "A VLAN. VLAN 1 belongs to the API.";
+      leaf id {
+        type uint16 {
+          range "2..4094";
+        }
+        description
+          "VLAN id.";
+      }
+      leaf name {
+        type string {
+          length "1..32";
+          pattern '[A-Za-z0-9_-]+';
+        }
+        mandatory true;
+        description
+          "VLAN name.";
+      }
+    }
+
+    list acl {
+      key "description";
+      ordered-by user;
+      min-elements 4;
+      description
+        "ACL entries, checked top to bottom.";
+      leaf description {
+        type string {
+          length "1..max";
+        }
+        description
+          "What the entry is for. The key, so each is unique.";
+      }
+      leaf action {
+        type enumeration {
+          enum permit;
+          enum deny;
+        }
+        mandatory true;
+        description
+          "Permit or deny.";
+      }
+      leaf src {
+        type own-prefix;
+        mandatory true;
+        description
+          "Source prefix.";
+      }
+      leaf dst {
+        type own-prefix;
+        mandatory true;
+        description
+          "Destination prefix.";
+      }
+      leaf protocol {
+        type enumeration {
+          enum tcp;
+          enum udp;
+          enum icmp;
+          enum any;
+        }
+        default "any";
+        description
+          "IP protocol.";
+      }
+      leaf port {
+        when "../protocol = 'tcp' or ../protocol = 'udp'";
+        type inet:port-number {
+          range "1..65535";
+        }
+        description
+          "Destination port: tcp or udp only.";
+      }
+    }
+  }
+}

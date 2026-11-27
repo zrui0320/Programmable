@@ -1,0 +1,9 @@
+$ LAB_USERNAME=netops LAB_PASSWORD=netops-pass python3 sync.py tests/bad-no-deny.yaml --dry-run
+ERROR: tests/bad-no-deny.yaml is rejected by the model (wic2005-intent.yang):
+    libyang err : The ACL needs at least one deny entry. (/wic2005-intent:intent)
+(exit 1)
+
+$ env -u LAB_USERNAME -u LAB_PASSWORD python3 sync.py tests/bad-no-deny.yaml --dry-run
+ERROR: tests/bad-no-deny.yaml is rejected by the model (wic2005-intent.yang):
+    libyang err : The ACL needs at least one deny entry. (/wic2005-intent:intent)
+(exit 1)

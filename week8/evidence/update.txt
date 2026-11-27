@@ -1,0 +1,5 @@
+$ pyang -P $M/ietf --check-update-from old/wic2005-intent.yang wic2005-intent.yang
+COMPATIBLE
+
+$ pyang -P $M/ietf --check-update-from old/wic2005-intent.yang scratch/wic2005-intent.yang
+scratch/wic2005-intent.yang:61: error: the range has been illegally restricted (RFC 7950: sec. 11, p5, bullet 3)

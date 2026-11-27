@@ -1,0 +1,68 @@
+module example-wifi {
+  yang-version 1.1;
+  namespace "urn:example:wifi";
+  prefix wf;
+
+  import example-vlans { prefix vl; }
+
+  description "Teras Hub Wi-Fi networks, each carried on a VLAN.";
+
+  revision 2026-11-28 { description "Add max-clients."; }
+  revision 2026-11-27 { description "Initial revision."; }
+
+  container wifi {
+    description "Wi-Fi configuration.";
+    list network {
+      key "ssid";
+      description "One Wi-Fi network.";
+      must "security = 'open' or passphrase" {
+        error-message "A secured network needs a passphrase.";
+      }
+      leaf ssid {
+        type string { length "1..32"; }
+        description "Network name.";
+      }
+      leaf vlan {
+        type leafref { path "/vl:vlans/vl:vlan/vl:id"; }
+        mandatory true;
+        description "VLAN that carries this network.";
+      }
+      leaf security {
+        type enumeration {
+          enum open;
+          enum wpa2-personal;
+          enum wpa3-personal;
+        }
+        default "wpa3-personal";
+        description "Security mode.";
+      }
+      leaf passphrase {
+        type string { length "8..63"; }
+        description "Required unless security is open.";
+      }
+      leaf-list bands {
+        type enumeration {
+          enum "2.4";
+          enum "5";
+          enum "6";
+        }
+        min-elements 1;
+        description "Bands in GHz.";
+      }
+      leaf max-clients {
+        type uint16;
+        description "Client limit.";
+      }
+      leaf hidden {
+        type boolean;
+        default "false";
+        description "Hide the SSID.";
+      }
+      leaf clients {
+        type uint32;
+        config false;
+        description "Devices connected now.";
+      }
+    }
+  }
+}
